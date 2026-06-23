@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>🌸 Cozy Room Reservation</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700&display=swap" rel="stylesheet">
+
+<style>
+:root{
+    --pink:#f8c8dc;
+    --pink-dark:#e89bb8;
+    --ivory:#fffdf7;
+    --text:#5c4b51;
+    --white:#ffffff;
+}
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:'Quicksand',sans-serif;
+}
+
+body{
+    background:var(--ivory);
+    color:var(--text);
+    padding:30px;
+}
+
+.container{
+    max-width:800px;
+    margin:auto;
+}
+
+.card{
+    background:white;
+    border-radius:25px;
+    padding:25px;
+    box-shadow:0 6px 20px rgba(0,0,0,0.08);
+    margin-bottom:20px;
+}
+
+h1{
+    text-align:center;
+    color:var(--pink-dark);
+    margin-bottom:10px;
+}
+
+.subtitle{
+    text-align:center;
+    margin-bottom:30px;
+}
+
+label{
+    display:block;
+    margin-top:15px;
+    font-weight:600;
+}
+
+input{
+    width:100%;
+    padding:12px;
+    border:2px solid var(--pink);
+    border-radius:15px;
+    margin-top:5px;
+}
+
+.checkbox-group{
+    margin-top:15px;
+}
+
+.checkbox-group label{
+    display:flex;
+    align-items:center;
+    gap:10px;
+}
+
+.checkbox-group input{
+    width:auto;
+}
+
+button{
+    width:100%;
+    margin-top:20px;
+    padding:14px;
+    border:none;
+    border-radius:20px;
+    background:var(--pink);
+    color:white;
+    font-size:16px;
+    font-weight:bold;
+    cursor:pointer;
+}
+
+button:hover{
+    background:var(--pink-dark);
+}
+
+.booking{
+    background:#fff7fa;
+    border-left:5px solid var(--pink-dark);
+    padding:12px;
+    border-radius:10px;
+    margin-bottom:10px;
+}
+
+.success{
+    color:green;
+    margin-top:15px;
+}
+
+.error{
+    color:red;
+    margin-top:15px;
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+
+<div class="card">
+<h1>🌸 Cozy Reservation Board</h1>
+
+<p class="subtitle">
+Room available daily from 06:00 AM - 12:00 AM
+</p>
+
+<form id="bookingForm">
+
+<label>Name</label>
+<input type="text" id="name" required>
+
+<label>Date</label>
+<input type="date" id="date" required>
+
+<label>Start Time</label>
+<input type="time" id="start" min="06:00" max="23:00" required>
+
+<label>End Time</label>
+<input type="time" id="end" min="07:00" max="24:00" required>
+
+<div class="checkbox-group">
+<label>
+<input type="checkbox" id="room" checked>
+Reserve Room
+</label>
+
+<label>
+<input type="checkbox" id="projector">
+Reserve Projector
+</label>
+</div>
+
+<button type="submit">✨ Reserve ✨</button>
+
+<div id="message"></div>
+
+</form>
+</div>
+
+<div class="card">
+<h2>📅 Current Reservations</h2>
+<div id="reservations"></div>
+</div>
+
+</div>
+
+<script>
+
+let reservations =
+JSON.parse(localStorage.getItem("reservations")) || [];
+
+function displayReservations(){
+
+const container =
+document.getElementById("reservations");
+
+container.innerHTML="";
+
+if(reservations.length===0){
+container.innerHTML="<p>No reservations yet 🌷</p>";
+return;
+}
+
+reservations.sort((a,b)=>
+(a.date+a.start).localeCompare(b.date+b.start));
+
+reservations.forEach(r=>{
+
+container.innerHTML += `
+<div class="booking">
+<b>${r.name}</b><br>
+📅 ${r.date}<br>
+🕒 ${r.start} - ${r.end}<br>
+🏠 ${r.room ? "Room" : ""}
+📽️ ${r.projector ? " Projector" : ""}
+</div>
+`;
+
+});
+}
+
+displayReservations();
+
+document.getElementById("bookingForm")
+.addEventListener("submit",function(e){
+
+e.preventDefault();
+
+const name=document.getElementById("name").value;
+const date=document.getElementById("date").value;
+const start=document.getElementById("start").value;
+const end=document.getElementById("end").value;
+const room=document.getElementById("room").checked;
+const projector=document.getElementById("projector").checked;
+
+const message=document.getElementById("message");
+
+if(!room && !projector){
+message.innerHTML =
+"<p class='error'>Please select Room and/or Projector.</p>";
+return;
+}
+
+const overlap = reservations.some(r=>{
+
+if(r.date !== date) return false;
+
+const sameResource =
+(room && r.room) ||
+(projector && r.projector);
+
+if(!sameResource) return false;
+
+return (
+start < r.end &&
+end > r.start
+);
+
+});
+
+if(overlap){
+message.innerHTML =
+"<p class='error'>❌ Selected slot is already reserved.</p>";
+return;
+}
+
+reservations.push({
+name,date,start,end,room,projector
+});
+
+localStorage.setItem(
+"reservations",
+JSON.stringify(reservations)
+);
+
+displayReservations();
+
+message.innerHTML =
+"<p class='success'>🌸 Reservation successful!</p>";
+
+this.reset();
+
+});
+
+</script>
+
+</body>
+</html>
