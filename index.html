@@ -171,101 +171,126 @@ Reserve Projector
 
 <script>
 
-let reservations =
-JSON.parse(localStorage.getItem("reservations")) || [];
+<script>
 
-function displayReservations(){
+const API_URL =
+"https://script.google.com/macros/s/AKfycbzwVR54DKGzYtF4tLJLzCoKB3TXbGVhS9CjBYjACujbmhOUvt0SWyyO8hJf5PjrYPUR/exec";
 
-const container =
-document.getElementById("reservations");
+let reservations = [];
 
-container.innerHTML="";
+async function loadReservations() {
 
-if(reservations.length===0){
-container.innerHTML="<p>No reservations yet 🌷</p>";
-return;
+    const response = await fetch(API_URL);
+    reservations = await response.json();
+
+    displayReservations();
 }
 
-reservations.sort((a,b)=>
-(a.date+a.start).localeCompare(b.date+b.start));
+function displayReservations() {
 
-reservations.forEach(r=>{
+    const container =
+    document.getElementById("reservations");
 
-container.innerHTML += `
-<div class="booking">
-<b>${r.name}</b><br>
-📅 ${r.date}<br>
-🕒 ${r.start} - ${r.end}<br>
-🏠 ${r.room ? "Room" : ""}
-📽️ ${r.projector ? " Projector" : ""}
-</div>
-`;
+    container.innerHTML = "";
 
-});
+    if (reservations.length === 0) {
+        container.innerHTML =
+        "<p>No reservations yet 🌷</p>";
+        return;
+    }
+
+    reservations.sort((a,b)=>
+    (a.date+a.start).localeCompare(b.date+b.start));
+
+    reservations.forEach(r => {
+
+        container.innerHTML += `
+        <div class="booking">
+        <b>${r.name}</b><br>
+        📅 ${r.date}<br>
+        🕒 ${r.start} - ${r.end}<br>
+        🏠 ${r.room ? "Room" : ""}
+        📽️ ${r.projector ? " Projector" : ""}
+        </div>
+        `;
+
+    });
+
 }
 
-displayReservations();
+loadReservations();
 
 document.getElementById("bookingForm")
-.addEventListener("submit",function(e){
+.addEventListener("submit", async function(e){
 
-e.preventDefault();
+    e.preventDefault();
 
-const name=document.getElementById("name").value;
-const date=document.getElementById("date").value;
-const start=document.getElementById("start").value;
-const end=document.getElementById("end").value;
-const room=document.getElementById("room").checked;
-const projector=document.getElementById("projector").checked;
+    const name =
+    document.getElementById("name").value;
 
-const message=document.getElementById("message");
+    const date =
+    document.getElementById("date").value;
 
-if(!room && !projector){
-message.innerHTML =
-"<p class='error'>Please select Room and/or Projector.</p>";
-return;
-}
+    const start =
+    document.getElementById("start").value;
 
-const overlap = reservations.some(r=>{
+    const end =
+    document.getElementById("end").value;
 
-if(r.date !== date) return false;
+    const room =
+    document.getElementById("room").checked;
 
-const sameResource =
-(room && r.room) ||
-(projector && r.projector);
+    const projector =
+    document.getElementById("projector").checked;
 
-if(!sameResource) return false;
+    const message =
+    document.getElementById("message");
 
-return (
-start < r.end &&
-end > r.start
-);
+    if(!room && !projector){
+
+        message.innerHTML =
+        "<p class='error'>Please select Room and/or Projector.</p>";
+
+        return;
+    }
+
+    const response = await fetch(API_URL, {
+
+        method: "POST",
+
+        body: JSON.stringify({
+            name,
+            date,
+            start,
+            end,
+            room,
+            projector
+        })
+
+    });
+
+    const result =
+    await response.json();
+
+    if(result.success){
+
+        message.innerHTML =
+        "<p class='success'>🌸 Reservation successful!</p>";
+
+        this.reset();
+
+        await loadReservations();
+
+    } else {
+
+        message.innerHTML =
+        `<p class='error'>❌ ${result.message}</p>`;
+
+    }
 
 });
 
-if(overlap){
-message.innerHTML =
-"<p class='error'>❌ Selected slot is already reserved.</p>";
-return;
-}
-
-reservations.push({
-name,date,start,end,room,projector
-});
-
-localStorage.setItem(
-"reservations",
-JSON.stringify(reservations)
-);
-
-displayReservations();
-
-message.innerHTML =
-"<p class='success'>🌸 Reservation successful!</p>";
-
-this.reset();
-
-});
+</script>
 
 </script>
 
