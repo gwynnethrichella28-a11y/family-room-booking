@@ -203,15 +203,27 @@ function displayReservations() {
 
     reservations.forEach(r => {
 
-        container.innerHTML += `
-        <div class="booking">
-        <b>${r.name}</b><br>
-        📅 ${r.date}<br>
-        🕒 ${r.start} - ${r.end}<br>
-        🏠 ${r.room ? "Room" : ""}
-        📽️ ${r.projector ? " Projector" : ""}
-        </div>
-        `;
+        const date = new Date(r.date).toLocaleDateString();
+
+const start = new Date(r.start).toLocaleTimeString([], {
+    hour: '2-digit',
+    minute: '2-digit'
+});
+
+const end = new Date(r.end).toLocaleTimeString([], {
+    hour: '2-digit',
+    minute: '2-digit'
+});
+
+container.innerHTML += `
+<div class="booking">
+<b>${r.name}</b><br>
+📅 ${date}<br>
+🕒 ${start} - ${end}<br>
+🏠 ${r.room ? "Room" : ""}
+📽️ ${r.projector ? " Projector" : ""}
+</div>
+`;
 
     });
 
